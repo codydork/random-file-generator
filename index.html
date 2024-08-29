@@ -61,6 +61,12 @@
         button:hover {
             background-color: #45a049;
         }
+        .preview {
+            margin-top: 20px;
+            text-align: left;
+            color: #555;
+            font-size: 14px;
+        }
         .footer {
             margin-top: 20px;
             color: #999;
@@ -77,7 +83,6 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2><i class="fas fa-file-alt"></i> File Generator</h2>
         <form id="file-generator-form">
@@ -85,12 +90,10 @@
                 <label for="filename">Filename Prefix:</label>
                 <input type="text" id="filename" placeholder="Enter filename prefix" oninput="updatePreview()">
             </div>
-
             <div class="form-group">
                 <label for="extension">File Extension:</label>
                 <input type="text" id="extension" placeholder="e.g., txt, csv" oninput="updatePreview()">
             </div>
-
             <div class="form-group">
                 <label for="size">File Size:</label>
                 <div class="range-input">
@@ -104,12 +107,10 @@
                     <option value="GB">GB</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="count">Number of Files:</label>
                 <input type="number" id="count" placeholder="Enter number of files" oninput="updatePreview()">
             </div>
-
             <div class="form-group">
                 <label for="corrupt">Corrupt Files:</label>
                 <select id="corrupt">
@@ -117,63 +118,37 @@
                     <option value="yes">Yes</option>
                 </select>
             </div>
-
             <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
         </form>
-
+        <div class="preview" id="file-preview">
+            <strong>Preview:</strong>
+            <p id="file-details">No files to display.</p>
+        </div>
         <div class="footer">
             &copy; 2024 File Generator Tool
         </div>
     </div>
-
     <script>
-       
+        function updatePreview() {
+            const filenamePrefix = document.getElementById('filename').value;
+            const extension = document.getElementById('extension').value;
+            const minSize = parseInt(document.getElementById('min-size').value);
+            const maxSize = parseInt(document.getElementById('max-size').value);
+            const sizeUnit = document.getElementById('size-unit').value;
+            const count = parseInt(document.getElementById('count').value);
+
             if (minSize > maxSize) {
                 document.getElementById('file-details').textContent = 'Min size should not exceed max size.';
                 return;
             }
 
-            let randomSizeInBytes = (minSize && maxSize) ? generateRandomSize(minSize, maxSize, sizeUnit) : 0;
-
-            const readableSize = formatSize(randomSizeInBytes);
-
-            if (filenamePrefix && extension && !isNaN(randomSizeInBytes) && !isNaN(count)) {
-                let previewText = `Generating ${count} file(s):\n`;
-                for (let i = 0; i < count; i++) {
-                    const filename = `${filenamePrefix}_${i + 1}.${extension}`;
-                    previewText += `${filename} (${readableSize})\n`;
-                }
-            
-        }
-
-        function formatSize(bytes) {
-            if (bytes >= 1024 * 1024 * 1024) {
-                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-            } else if (bytes >= 1024 * 1024) {
-                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-            } else if (bytes >= 1024) {
-                return (bytes / 1024).toFixed(2) + ' KB';
+            if (filenamePrefix && extension && count > 0 && !isNaN(minSize) && !isNaN(maxSize)) {
+                const sizeRange = `${minSize}-${maxSize} ${sizeUnit}`;
+                const previewText = `${count} files, ${sizeRange} each, name: ${filenamePrefix}_1.${extension}`;
+                document.getElementById('file-details').textContent = previewText;
             } else {
-                return bytes + ' Bytes';
+                document.getElementById('file-details').textContent = 'No files to display.';
             }
-        }
-
-        function generateRandomSize(min, max, unit) {
-            let minBytes = min;
-            let maxBytes = max;
-
-            if (unit === 'KB') {
-                minBytes *= 1024;
-                maxBytes *= 1024;
-            } else if (unit === 'MB') {
-                minBytes *= 1024 * 1024;
-                maxBytes *= 1024 * 1024;
-            } else if (unit === 'GB') {
-                minBytes *= 1024 * 1024 * 1024;
-                maxBytes *= 1024 * 1024 * 1024;
-            }
-
-            return Math.floor(Math.random() * (maxBytes - minBytes + 1)) + minBytes;
         }
 
         function generateFiles() {
@@ -205,6 +180,24 @@
                 });
         }
 
+        function generateRandomSize(min, max, unit) {
+            let minBytes = min;
+            let maxBytes = max;
+
+            if (unit === 'KB') {
+                minBytes *= 1024;
+                maxBytes *= 1024;
+            } else if (unit === 'MB') {
+                minBytes *= 1024 * 1024;
+                maxBytes *= 1024 * 1024;
+            } else if (unit === 'GB') {
+                minBytes *= 1024 * 1024 * 1024;
+                maxBytes *= 1024 * 1024 * 1024;
+            }
+
+            return Math.floor(Math.random() * (maxBytes - minBytes + 1)) + minBytes;
+        }
+
         function generateContent(size) {
             let content = '';
             for (let i = 0; i < size; i++) {
@@ -216,12 +209,10 @@
         function generateCorruptContent(size) {
             let content = '';
             for (let i = 0; i < size; i++) {
-                // Introduce random corruption by inserting random characters
-                content += String.fromCharCode(Math.floor(Math.random() * 256));
+                content += String.fromCharCode(Math.floor(Math.random() * 256)); // Random corruption
             }
             return content;
         }
     </script>
-
 </body>
 </html>
