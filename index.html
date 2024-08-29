@@ -83,6 +83,7 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <h2><i class="fas fa-file-alt"></i> File Generator</h2>
         <form id="file-generator-form">
@@ -90,10 +91,12 @@
                 <label for="filename">Filename Prefix:</label>
                 <input type="text" id="filename" placeholder="Enter filename prefix" oninput="updatePreview()">
             </div>
+
             <div class="form-group">
                 <label for="extension">File Extension:</label>
                 <input type="text" id="extension" placeholder="e.g., txt, csv" oninput="updatePreview()">
             </div>
+
             <div class="form-group">
                 <label for="size">File Size:</label>
                 <div class="range-input">
@@ -107,10 +110,12 @@
                     <option value="GB">GB</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="count">Number of Files:</label>
                 <input type="number" id="count" placeholder="Enter number of files" oninput="updatePreview()">
             </div>
+
             <div class="form-group">
                 <label for="corrupt">Corrupt Files:</label>
                 <select id="corrupt">
@@ -118,16 +123,20 @@
                     <option value="yes">Yes</option>
                 </select>
             </div>
+
             <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
         </form>
+
         <div class="preview" id="file-preview">
             <strong>Preview:</strong>
             <p id="file-details">No files to display.</p>
         </div>
+
         <div class="footer">
             &copy; 2024 File Generator Tool
         </div>
     </div>
+
     <script>
         function updatePreview() {
             const filenamePrefix = document.getElementById('filename').value;
@@ -137,18 +146,53 @@
             const sizeUnit = document.getElementById('size-unit').value;
             const count = parseInt(document.getElementById('count').value);
 
+                        if (isNaN(minSize) || isNaN(maxSize) || isNaN(count) || !filenamePrefix || !extension) {
+                document.getElementById('file-details').textContent = 'Please provide valid input for all fields.';
+                return;
+            }
+
             if (minSize > maxSize) {
                 document.getElementById('file-details').textContent = 'Min size should not exceed max size.';
                 return;
             }
 
-            if (filenamePrefix && extension && count > 0 && !isNaN(minSize) && !isNaN(maxSize)) {
-                const sizeRange = `${minSize}-${maxSize} ${sizeUnit}`;
-                const previewText = `${count} files, ${sizeRange} each, name: ${filenamePrefix}_1.${extension}`;
-                document.getElementById('file-details').textContent = previewText;
-            } else {
-                document.getElementById('file-details').textContent = 'No files to display.';
+            const readableMinSize = formatSize(minSize * convertToBytes(1, sizeUnit));
+            const readableMaxSize = formatSize(maxSize * convertToBytes(1, sizeUnit));
+
+            const previewText = `${count} file(s), ${readableMinSize} - ${readableMaxSize} each, name: ${filenamePrefix}_#.${extension}`;
+            document.getElementById('file-details').textContent = previewText;
+        }
+
+        function convertToBytes(value, unit) {
+            switch (unit) {
+                case 'KB':
+                    return value * 1024;
+                case 'MB':
+                    return value * 1024 * 1024;
+                case 'GB':
+                    return value * 1024 * 1024 * 1024;
+                default:
+                    return value;
             }
+        }
+
+        function formatSize(bytes) {
+            if (bytes >= 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+            } else if (bytes >= 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            } else if (bytes >= 1024) {
+                return (bytes / 1024).toFixed(2) + ' KB';
+            } else {
+                return bytes + ' Bytes';
+            }
+        }
+
+        function generateRandomSize(min, max, unit) {
+            const minBytes = convertToBytes(min, unit);
+            const maxBytes = convertToBytes(max, unit);
+
+            return Math.floor(Math.random() * (maxBytes - minBytes + 1)) + minBytes;
         }
 
         function generateFiles() {
@@ -160,7 +204,7 @@
             const count = parseInt(document.getElementById('count').value);
             const corrupt = document.getElementById('corrupt').value === 'yes';
 
-            if (minSize > maxSize || isNaN(minSize) || isNaN(maxSize) || isNaN(count)) {
+            if (isNaN(minSize) || isNaN(maxSize) || isNaN(count) || minSize > maxSize) {
                 alert('Please enter valid size range and file count.');
                 return;
             }
@@ -180,39 +224,18 @@
                 });
         }
 
-        function generateRandomSize(min, max, unit) {
-            let minBytes = min;
-            let maxBytes = max;
-
-            if (unit === 'KB') {
-                minBytes *= 1024;
-                maxBytes *= 1024;
-            } else if (unit === 'MB') {
-                minBytes *= 1024 * 1024;
-                maxBytes *= 1024 * 1024;
-            } else if (unit === 'GB') {
-                minBytes *= 1024 * 1024 * 1024;
-                maxBytes *= 1024 * 1024 * 1024;
-            }
-
-            return Math.floor(Math.random() * (maxBytes - minBytes + 1)) + minBytes;
-        }
-
         function generateContent(size) {
-            let content = '';
-            for (let i = 0; i < size; i++) {
-                content += 'A'; // Normal content with 'A' characters
-            }
-            return content;
+            return 'A'.repeat(size);
         }
 
         function generateCorruptContent(size) {
             let content = '';
             for (let i = 0; i < size; i++) {
-                content += String.fromCharCode(Math.floor(Math.random() * 256)); // Random corruption
+                content += String.fromCharCode(Math.floor(Math.random() * 256));
             }
             return content;
         }
     </script>
+
 </body>
 </html>
