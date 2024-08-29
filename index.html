@@ -127,25 +127,13 @@
             <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
         </form>
 
-        <div class="preview" id="file-preview">
-            <strong>Preview:</strong>
-            <p id="file-details">No files to display.</p>
-        </div>
-
         <div class="footer">
             &copy; 2024 File Generator Tool
         </div>
     </div>
 
     <script>
-        function updatePreview() {
-            const filenamePrefix = document.getElementById('filename').value;
-            const extension = document.getElementById('extension').value;
-            const minSize = parseInt(document.getElementById('min-size').value);
-            const maxSize = parseInt(document.getElementById('max-size').value);
-            const sizeUnit = document.getElementById('size-unit').value;
-            const count = parseInt(document.getElementById('count').value);
-
+       
             if (minSize > maxSize) {
                 document.getElementById('file-details').textContent = 'Min size should not exceed max size.';
                 return;
