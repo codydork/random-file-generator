@@ -6,35 +6,104 @@
     <title>File Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/jszip/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        input, button {
-            margin: 10px 0;
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        .container h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
             padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
-    <h2>File Generator</h2>
-    <form id="file-generator-form">
-        <label for="filename">Filename Prefix:</label>
-        <input type="text" id="filename" placeholder="Enter filename prefix"><br>
+    <div class="container">
+        <h2><i class="fas fa-file-alt"></i> File Generator</h2>
+        <form id="file-generator-form">
+            <div class="form-group">
+                <label for="filename">Filename Prefix:</label>
+                <input type="text" id="filename" placeholder="Enter filename prefix">
+            </div>
 
-        <label for="extension">File Extension:</label>
-        <input type="text" id="extension" placeholder="e.g., txt, csv"><br>
+            <div class="form-group">
+                <label for="extension">File Extension:</label>
+                <input type="text" id="extension" placeholder="e.g., txt, csv">
+            </div>
 
-        <label for="size">File Size (bytes):</label>
-        <input type="number" id="size" placeholder="Enter file size"><br>
+            <div class="form-group">
+                <label for="size">File Size (bytes):</label>
+                <input type="number" id="size" placeholder="Enter file size">
+            </div>
 
-        <label for="count">Number of Files:</label>
-        <input type="number" id="count" placeholder="Enter number of files"><br>
+            <div class="form-group">
+                <label for="count">Number of Files:</label>
+                <input type="number" id="count" placeholder="Enter number of files">
+            </div>
 
-        <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
-    </form>
+            <div class="form-group">
+                <label for="corrupt">Corrupt Files:</label>
+                <select id="corrupt">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
+        </form>
+
+        <div class="footer">
+            &copy; 2024 File Generator Tool
+        </div>
+    </div>
 
     <script>
         function generateFiles() {
@@ -42,6 +111,7 @@
             const extension = document.getElementById('extension').value;
             const size = parseInt(document.getElementById('size').value);
             const count = parseInt(document.getElementById('count').value);
+            const corrupt = document.getElementById('corrupt').value === 'yes';
 
             if (!filenamePrefix || !extension || isNaN(size) || isNaN(count)) {
                 alert('Please fill in all fields correctly.');
@@ -52,7 +122,7 @@
 
             for (let i = 0; i < count; i++) {
                 const filename = `${filenamePrefix}_${i + 1}.${extension}`;
-                const content = generateContent(size);
+                const content = corrupt ? generateCorruptContent(size) : generateContent(size);
                 zip.file(filename, content);
             }
 
@@ -65,7 +135,16 @@
         function generateContent(size) {
             let content = '';
             for (let i = 0; i < size; i++) {
-                content += 'A'; // Simple content to fill the file, using 'A' character
+                content += 'A'; // Normal content with 'A' characters
+            }
+            return content;
+        }
+
+        function generateCorruptContent(size) {
+            let content = '';
+            for (let i = 0; i < size; i++) {
+                // Introduce random corruption by inserting random characters
+                content += String.fromCharCode(Math.floor(Math.random() * 256));
             }
             return content;
         }
