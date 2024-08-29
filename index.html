@@ -10,7 +10,7 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f7f7f7;
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,30 +20,33 @@
         }
         .container {
             background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 400px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 450px;
             text-align: center;
         }
         .container h2 {
             color: #333;
             margin-bottom: 20px;
+            font-size: 24px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: left;
         }
         label {
             display: block;
             margin-bottom: 5px;
-            color: #555;
+            color: #333;
+            font-weight: bold;
         }
         input, select {
-            width: 100%;
+            width: calc(100% - 20px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            margin-bottom: 10px;
         }
         button {
             background-color: #4CAF50;
@@ -53,6 +56,7 @@
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            font-size: 16px;
         }
         button:hover {
             background-color: #45a049;
@@ -61,11 +65,20 @@
             margin-top: 20px;
             text-align: left;
             color: #555;
+            font-size: 14px;
         }
         .footer {
             margin-top: 20px;
             color: #999;
             font-size: 12px;
+        }
+        .range-input {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .range-input input {
+            width: 45%;
         }
     </style>
 </head>
@@ -86,11 +99,15 @@
 
             <div class="form-group">
                 <label for="size">File Size:</label>
-                <input type="number" id="size" placeholder="Enter file size" oninput="updatePreview()">
+                <div class="range-input">
+                    <input type="number" id="min-size" placeholder="Min size" oninput="updatePreview()">
+                    <input type="number" id="max-size" placeholder="Max size" oninput="updatePreview()">
+                </div>
                 <select id="size-unit" onchange="updatePreview()">
                     <option value="B">Bytes</option>
                     <option value="KB">KB</option>
                     <option value="MB">MB</option>
+                    <option value="GB">GB</option>
                 </select>
             </div>
 
@@ -124,20 +141,21 @@
         function updatePreview() {
             const filenamePrefix = document.getElementById('filename').value;
             const extension = document.getElementById('extension').value;
-            const size = parseInt(document.getElementById('size').value);
+            const minSize = parseInt(document.getElementById('min-size').value);
+            const maxSize = parseInt(document.getElementById('max-size').value);
             const sizeUnit = document.getElementById('size-unit').value;
             const count = parseInt(document.getElementById('count').value);
 
-            let sizeInBytes = size;
-            if (sizeUnit === 'KB') {
-                sizeInBytes *= 1024;
-            } else if (sizeUnit === 'MB') {
-                sizeInBytes *= 1024 * 1024;
+            if (minSize > maxSize) {
+                document.getElementById('file-details').textContent = 'Min size should not exceed max size.';
+                return;
             }
 
-            const readableSize = formatSize(sizeInBytes);
+            let randomSizeInBytes = (minSize && maxSize) ? generateRandomSize(minSize, maxSize, sizeUnit) : 0;
 
-            if (filenamePrefix && extension && !isNaN(sizeInBytes) && !isNaN(count)) {
+            const readableSize = formatSize(randomSizeInBytes);
+
+            if (filenamePrefix && extension && !isNaN(randomSizeInBytes) && !isNaN(count)) {
                 let previewText = `Generating ${count} file(s):\n`;
                 for (let i = 0; i < count; i++) {
                     const filename = `${filenamePrefix}_${i + 1}.${extension}`;
@@ -150,7 +168,9 @@
         }
 
         function formatSize(bytes) {
-            if (bytes >= 1024 * 1024) {
+            if (bytes >= 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+            } else if (bytes >= 1024 * 1024) {
                 return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
             } else if (bytes >= 1024) {
                 return (bytes / 1024).toFixed(2) + ' KB';
@@ -159,23 +179,35 @@
             }
         }
 
+        function generateRandomSize(min, max, unit) {
+            let minBytes = min;
+            let maxBytes = max;
+
+            if (unit === 'KB') {
+                minBytes *= 1024;
+                maxBytes *= 1024;
+            } else if (unit === 'MB') {
+                minBytes *= 1024 * 1024;
+                maxBytes *= 1024 * 1024;
+            } else if (unit === 'GB') {
+                minBytes *= 1024 * 1024 * 1024;
+                maxBytes *= 1024 * 1024 * 1024;
+            }
+
+            return Math.floor(Math.random() * (maxBytes - minBytes + 1)) + minBytes;
+        }
+
         function generateFiles() {
             const filenamePrefix = document.getElementById('filename').value;
             const extension = document.getElementById('extension').value;
-            const size = parseInt(document.getElementById('size').value);
+            const minSize = parseInt(document.getElementById('min-size').value);
+            const maxSize = parseInt(document.getElementById('max-size').value);
             const sizeUnit = document.getElementById('size-unit').value;
             const count = parseInt(document.getElementById('count').value);
             const corrupt = document.getElementById('corrupt').value === 'yes';
 
-            let sizeInBytes = size;
-            if (sizeUnit === 'KB') {
-                sizeInBytes *= 1024;
-            } else if (sizeUnit === 'MB') {
-                sizeInBytes *= 1024 * 1024;
-            }
-
-            if (!filenamePrefix || !extension || isNaN(sizeInBytes) || isNaN(count)) {
-                alert('Please fill in all fields correctly.');
+            if (minSize > maxSize || isNaN(minSize) || isNaN(maxSize) || isNaN(count)) {
+                alert('Please enter valid size range and file count.');
                 return;
             }
 
@@ -183,7 +215,8 @@
 
             for (let i = 0; i < count; i++) {
                 const filename = `${filenamePrefix}_${i + 1}.${extension}`;
-                const content = corrupt ? generateCorruptContent(sizeInBytes) : generateContent(sizeInBytes);
+                const randomSizeInBytes = generateRandomSize(minSize, maxSize, sizeUnit);
+                const content = corrupt ? generateCorruptContent(randomSizeInBytes) : generateContent(randomSizeInBytes);
                 zip.file(filename, content);
             }
 
