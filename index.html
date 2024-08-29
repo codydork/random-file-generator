@@ -61,12 +61,6 @@
         button:hover {
             background-color: #45a049;
         }
-        .preview {
-            margin-top: 20px;
-            text-align: left;
-            color: #555;
-            font-size: 14px;
-        }
         .footer {
             margin-top: 20px;
             color: #999;
@@ -149,10 +143,7 @@
                     const filename = `${filenamePrefix}_${i + 1}.${extension}`;
                     previewText += `${filename} (${readableSize})\n`;
                 }
-                document.getElementById('file-details').textContent = previewText;
-            } else {
-                document.getElementById('file-details').textContent = 'No files to display.';
-            }
+            
         }
 
         function formatSize(bytes) {
