@@ -57,6 +57,11 @@
         button:hover {
             background-color: #45a049;
         }
+        .preview {
+            margin-top: 20px;
+            text-align: left;
+            color: #555;
+        }
         .footer {
             margin-top: 20px;
             color: #999;
@@ -71,22 +76,27 @@
         <form id="file-generator-form">
             <div class="form-group">
                 <label for="filename">Filename Prefix:</label>
-                <input type="text" id="filename" placeholder="Enter filename prefix">
+                <input type="text" id="filename" placeholder="Enter filename prefix" oninput="updatePreview()">
             </div>
 
             <div class="form-group">
                 <label for="extension">File Extension:</label>
-                <input type="text" id="extension" placeholder="e.g., txt, csv">
+                <input type="text" id="extension" placeholder="e.g., txt, csv" oninput="updatePreview()">
             </div>
 
             <div class="form-group">
-                <label for="size">File Size (bytes):</label>
-                <input type="number" id="size" placeholder="Enter file size">
+                <label for="size">File Size:</label>
+                <input type="number" id="size" placeholder="Enter file size" oninput="updatePreview()">
+                <select id="size-unit" onchange="updatePreview()">
+                    <option value="B">Bytes</option>
+                    <option value="KB">KB</option>
+                    <option value="MB">MB</option>
+                </select>
             </div>
 
             <div class="form-group">
                 <label for="count">Number of Files:</label>
-                <input type="number" id="count" placeholder="Enter number of files">
+                <input type="number" id="count" placeholder="Enter number of files" oninput="updatePreview()">
             </div>
 
             <div class="form-group">
@@ -100,20 +110,71 @@
             <button type="button" onclick="generateFiles()">Generate and Download as ZIP</button>
         </form>
 
+        <div class="preview" id="file-preview">
+            <strong>Preview:</strong>
+            <p id="file-details">No files to display.</p>
+        </div>
+
         <div class="footer">
             &copy; 2024 File Generator Tool
         </div>
     </div>
 
     <script>
+        function updatePreview() {
+            const filenamePrefix = document.getElementById('filename').value;
+            const extension = document.getElementById('extension').value;
+            const size = parseInt(document.getElementById('size').value);
+            const sizeUnit = document.getElementById('size-unit').value;
+            const count = parseInt(document.getElementById('count').value);
+
+            let sizeInBytes = size;
+            if (sizeUnit === 'KB') {
+                sizeInBytes *= 1024;
+            } else if (sizeUnit === 'MB') {
+                sizeInBytes *= 1024 * 1024;
+            }
+
+            const readableSize = formatSize(sizeInBytes);
+
+            if (filenamePrefix && extension && !isNaN(sizeInBytes) && !isNaN(count)) {
+                let previewText = `Generating ${count} file(s):\n`;
+                for (let i = 0; i < count; i++) {
+                    const filename = `${filenamePrefix}_${i + 1}.${extension}`;
+                    previewText += `${filename} (${readableSize})\n`;
+                }
+                document.getElementById('file-details').textContent = previewText;
+            } else {
+                document.getElementById('file-details').textContent = 'No files to display.';
+            }
+        }
+
+        function formatSize(bytes) {
+            if (bytes >= 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            } else if (bytes >= 1024) {
+                return (bytes / 1024).toFixed(2) + ' KB';
+            } else {
+                return bytes + ' Bytes';
+            }
+        }
+
         function generateFiles() {
             const filenamePrefix = document.getElementById('filename').value;
             const extension = document.getElementById('extension').value;
             const size = parseInt(document.getElementById('size').value);
+            const sizeUnit = document.getElementById('size-unit').value;
             const count = parseInt(document.getElementById('count').value);
             const corrupt = document.getElementById('corrupt').value === 'yes';
 
-            if (!filenamePrefix || !extension || isNaN(size) || isNaN(count)) {
+            let sizeInBytes = size;
+            if (sizeUnit === 'KB') {
+                sizeInBytes *= 1024;
+            } else if (sizeUnit === 'MB') {
+                sizeInBytes *= 1024 * 1024;
+            }
+
+            if (!filenamePrefix || !extension || isNaN(sizeInBytes) || isNaN(count)) {
                 alert('Please fill in all fields correctly.');
                 return;
             }
@@ -122,7 +183,7 @@
 
             for (let i = 0; i < count; i++) {
                 const filename = `${filenamePrefix}_${i + 1}.${extension}`;
-                const content = corrupt ? generateCorruptContent(size) : generateContent(size);
+                const content = corrupt ? generateCorruptContent(sizeInBytes) : generateContent(sizeInBytes);
                 zip.file(filename, content);
             }
 
